@@ -1,7 +1,6 @@
 use rand::{thread_rng, Rng};
 use std::collections::HashMap;
 
-
 // x, z, -x, -z
 
 #[derive(PartialEq, Copy, Clone)]
@@ -210,7 +209,7 @@ fn main() {
     let mut total = 0;
     for square in input {
         source_square_ids.insert(square.walls, format!("cstr{}", total));
-        println!("<structure id=\"{}\"><region><cuboid min=\"{},{},{}\" size=\"10,10,10\"/></region></structure>", source_square_ids.get(&square.walls).expect("?"), square.x(), 0, square.z());
+        println!("<structure clear=\"false\" id=\"{}\"><region><cuboid min=\"{},{},{}\" size=\"10,10,10\"/></region></structure>", source_square_ids.get(&square.walls).expect("?"), square.x(), 0, square.z());
         total += 1;
     }
 
@@ -227,25 +226,27 @@ fn main() {
         }
     }
 
-    let x_size = 5;
-    let z_size = 5;
+    for grid_try in 0..15 {
+        let x_size = 5;
+        let z_size = 5;
 
-    let mut grid = Grid::new(x_size, z_size);
+        let mut grid = Grid::new(x_size, z_size);
 
-    grid.randomize_grid();
-    grid.set_border_walls();
+        grid.randomize_grid();
+        grid.set_border_walls();
+        grid.set_wall(2, 0, 3, false);
+        grid.set_wall(2, 4, 1, false);
 
-    // let mut total = 0;
-    for x in 0..x_size {
-        for z in 0..z_size {
-            let destination_square = grid.get_square(x, z);
-            let options = square_cache.get(&destination_square.walls).expect("What?");
-            let index = rng.gen_range(0..options.len());
-            let _source_square = options.get(index).expect("Wslkdsjf");
-            // println!("<structure id=\"cstr{}\"><region><cuboid min=\"{},{},{}\" size=\"10,10,10\"/></region></structure>", total, source_square.x(), 0, source_square.z());
-            // total += 1;
+        let mut total = 0;
+        for x in 0..x_size {
+            for z in 0..z_size {
+                let destination_square = grid.get_square(x, z);
+                let options = square_cache.get(&destination_square.walls).expect("What?");
+                let index = rng.gen_range(0..options.len());
+                let source_square = options.get(index).expect("Wslkdsjf");
+                println!("<dynamic trigger=\"always\" id=\"{}dstrid{}\" structure=\"{}\" location=\"{},0,{}\"><filter><variable var=\"structure_choice\">{}</variable></filter></dynamic>", grid_try, total, source_square_ids.get(&source_square.walls).expect("?"), x * 10, z * 10, grid_try);
+                total += 1;
+            }
         }
     }
-
-    println!("Hello, world!");
 }
