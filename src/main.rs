@@ -1,3 +1,4 @@
+
 use rand::{thread_rng, Rng};
 use std::collections::HashMap;
 
@@ -209,19 +210,21 @@ fn main() {
     let mut total = 0;
     for square in input {
         source_square_ids.insert(square.walls, format!("cstr{}", total));
-        println!("<structure clear=\"false\" id=\"{}\"><region><cuboid min=\"{},{},{}\" size=\"10,10,10\"/></region></structure>", source_square_ids.get(&square.walls).expect("?"), square.x(), 0, square.z());
+        println!("<structure air=\"true\" clear=\"false\" id=\"{}\"><region><cuboid min=\"{},{},{}\" size=\"10,10,10\"/></region></structure>", source_square_ids.get(&square.walls).expect("?"), square.x(), 0, square.z());
         total += 1;
     }
 
-    let mut square_cache: HashMap<[bool; 4], Vec<Square>> = HashMap::new();
+    let mut square_cache: HashMap<[bool; 4], Vec<(Square, usize)>> = HashMap::new();
 
-    for square in input {
+    for index in 0..input.len() {
+        // for square in input {
+        let square = input[index];
         if square_cache.contains_key(&square.walls) {
             let squares = square_cache.get_mut(&square.walls).expect("WTF");
-            squares.push(square);
+            squares.insert(0, (square, index));
         } else {
             let mut vec = Vec::new();
-            vec.push(square);
+            vec.push((square, index));
             square_cache.insert(square.walls, vec);
         }
     }
@@ -243,8 +246,8 @@ fn main() {
                 let destination_square = grid.get_square(x, z);
                 let options = square_cache.get(&destination_square.walls).expect("What?");
                 let index = rng.gen_range(0..options.len());
-                let source_square = options.get(index).expect("Wslkdsjf");
-                println!("<dynamic trigger=\"always\" id=\"{}dstrid{}\" structure=\"{}\" location=\"{},0,{}\"><filter><variable var=\"structure_choice\">{}</variable></filter></dynamic>", grid_try, total, source_square_ids.get(&source_square.walls).expect("?"), x * 10, z * 10, grid_try);
+                let (_, source_id) = options.get(index).expect("Wslkdsjf");
+                println!("<dynamic trigger=\"structure-filter\" id=\"{}dstrid{}\" structure=\"cstr{}\" location=\"{},0,{}\"><filter><variable var=\"structure_choice\">{}</variable></filter></dynamic>", grid_try, total, source_id, x * 10, z * 10, grid_try);
                 total += 1;
             }
         }
